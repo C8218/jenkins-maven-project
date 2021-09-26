@@ -3,15 +3,24 @@ pipeline {
     stages {
         stage('Build') {
             steps {
-                echo 'Compiıing the java source code'
-                sh 'javac Hello.java'
+                sh 'mvn -f hello-app/pom.xml -B -DskipTests clean package'
             }
-        }    
-        stage('run') {
+            post {
+                success {
+                    echo "Now Archiving the Artifacts....."
+                    archiveArtifacts artifacts: '**/*.jar'
+                }
+            }
+        }
+        stage('Test') {
             steps {
-                echo 'Running the complied java code.'
-                sh 'java Hello'
-            }        
+                sh 'mvn -f hello-app/pom.xml test'
+            }
+            post {
+                always {
+                    junit 'hello-app/target/surefire-reports/*.xml'
+                }
+            }
         }
     }
 }
